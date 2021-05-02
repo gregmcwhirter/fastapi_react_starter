@@ -1,0 +1,24 @@
+# pull official base image
+FROM python:3.9.4-slim-buster
+
+# set work directory
+WORKDIR /backend
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# copy requirements file
+COPY ./requirements.txt /backend/requirements.txt
+
+# install system dependencies
+RUN set -ex \
+    && apt-get update \
+    && apt-get -y install netcat gcc \
+    && apt-get clean \
+    && pip install --upgrade pip setuptools wheel \
+    && pip install -r /backend/requirements.txt \
+    && rm -rf /root/.cache/pip
+
+# copy project
+COPY . /backend

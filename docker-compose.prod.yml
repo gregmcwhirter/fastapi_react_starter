@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  webapp:
+    container_name: webapp
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    networks:
+      - proxy
+    labels:
+      # Traefik configuration, Hostname needs to be changed
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.inversio-secure.entrypoints=websecure"
+      - "traefik.http.routers.invercio-secure.rule=Host(`invercio.redloco.ca`)"
+
+networks:
+  proxy:
+    external: true

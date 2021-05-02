@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  webapp:
+    container_name: webapp
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - 8080:8080
+    command: npm start
+    volumes:
+      - ./frontend/src:/app/src

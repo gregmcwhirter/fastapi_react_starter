@@ -1,0 +1,17 @@
+# build environment
+FROM node:14-slim as build
+WORKDIR /app
+ENV PATH /app/node_modules/.bin:$PATH
+COPY package.json ./
+COPY package-lock.json ./
+RUN npm ci
+COPY . ./
+RUN npm run build
+
+# production environment
+FROM nginx:stable-alpine
+# Optionally COPY accepts a flag --from=<name> that can be used to set the source location to a previous build stage 
+# (created with FROM .. AS <name>) that will be used instead of a build context sent by the user. 
+COPY --from=build /app/production_build /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

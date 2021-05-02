@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    #command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+    command: |
+      bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000'
+    volumes:
+      - ./backend/:/usr/src/app/
+    ports:
+      - 8002:8000
+    environment:
+      - DATABASE_URL=postgresql://invercio:invercio@db/invercio_dev
+
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=invercio
+      - POSTGRES_PASSWORD=invercio
+      - POSTGRES_DB=invercio_dev
+
+volumes:
+  postgres_data:
