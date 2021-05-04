@@ -1,8 +1,40 @@
 version: "3.9"
 
 services:
-  webapp:
-    container_name: webapp
+  #nginx:
+  #  image: nginx:1.19
+  #  volumes:
+  #    - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+  #  ports:
+  #    - 8000:80
+  #  depends_on:
+  #    - backend
+  #    - frontend
+
+  #redis:
+  #  container_name: invercio-redis
+  #  image: redis
+  #  ports:
+  #    - 6379:6379
+
+  #worker:
+  #  container_name: invercio-worker
+  #  build:
+  #    context: backend
+  #    dockerfile: Dockerfile
+  #  command: celery --app app.tasks worker --loglevel=DEBUG -Q main-queue -c 1
+
+  #flower:
+  #  container_name: invercio-flower
+  #  image: mher/flower
+  #  command: flower --broker=redis://redis:6379/0 --port=5555
+  #  ports:
+  #    - 5555:5555
+  #  depends_on:
+  #    - "redis"
+
+  frontend:
+    container_name: invercio-frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
@@ -11,3 +43,35 @@ services:
     command: npm start
     volumes:
       - ./frontend/src:/app/src
+
+  backend:
+    container_name: invercio-backend
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    command: python app/main.py
+    tty: true
+    volumes:
+      - ./backend:/app/:cached
+      - ./.docker/.ipython:/root/.ipython:cached
+    environment:
+      PYTHONPATH: .
+      DATABASE_URL: "postgresql://invercio:invercio@postgres:5432/invercio"
+    ports:
+      - 8000:8000
+    depends_on:
+      - "postgres"
+
+  postgres:
+    container_name: invercio-postgres
+    image: postgres:13-alpine
+    restart: always
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data:cached
+
+volumes:
+  postgres-data:
